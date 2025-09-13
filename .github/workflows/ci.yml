@@ -1,54 +1,37 @@
-name: example_CI
+name: log430-a25-labo0
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches: [main, master]
+    
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: self-hosted
     environment: Labo0
 
     steps:
-      - name: Checkout dépot
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Installer Python
+      - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Installer les dépendances
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
 
-      - name: Tests
+      - name: Run tests
         working-directory: src
-        run: | 
-          python3 -m pytest 
+        run:  python3 -m pytest 
 
-      - name: Déploiement via SSH
+      - name: Build Docker image
+        run: docker build -t labo0-calculator .
+
+      - name: Run Docker-container
         run: |
-          # Install SSH client
-          sudo apt-get update && sudo apt-get install -y openssh-client
-
-          if [ -z "${{ secrets.SSH_SERVER_HOST }}" ]; then
-            echo "ERROR: SSH_SERVER_HOST secret is not set or empty"
-            exit 1
-          else
-            echo "SSH_SERVER_HOST is set"
-          fi
-          
-          # Setup SSH key
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-          # Add server to known hosts to avoid host key verification prompt
-          ssh-keyscan -H ${{ secrets.SSH_SERVER_HOST }} >> ~/.ssh/known_hosts
-          
-          # Deploy via SSH
-          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER_HOST }} << 'EOF'
-            cd log430-a25-labo0
-            git pull origin main
-          EOF
+          docker stop labo0-calculator || true # ensures that the overall command still exits successfully and the script does not stop.
+          docker rm labo0-calculator || true
+          docker run -d --restart unless-stopped --name labo0-calculator labo0-calculator
