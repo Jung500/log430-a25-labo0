@@ -13,6 +13,7 @@ def test_app():
 # TODO: ajoutez les tests
 def test_addition():
     assert my_calculator.addition(2, 3) == 5
+    assert my_calculator.addition(1, 1) == 2
 def test_subtraction():
     assert my_calculator.subtraction(4, 2) == 2
 def test_multiplication():
