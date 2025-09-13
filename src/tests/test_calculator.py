@@ -19,6 +19,4 @@ def test_multiplication():
     assert my_calculator.multiplication(2, 2) == 4
 def test_division():
     assert my_calculator.division(9, 3) == 3
-def test_error():
-    assert my_calculator.division(9, 3) == 2
 
